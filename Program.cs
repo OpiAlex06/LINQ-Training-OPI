@@ -11,7 +11,7 @@ Console.WriteLine($"Employee with ID 3: {employeesDictionary[3].Name}");
 
 
 
-//  TAREA: REPORTES CON LINQ
+//  TAREA: REPORTES CON LINQ (.where, .groupby, .orderby, .select)
 
 
 // 1. Pedidos del último mes agrupados por estado
