@@ -9,9 +9,10 @@ List<Employee> employees = SampleData.GetEmployees();
 var employeesDictionary = employees.ToDictionary(e => e.Id);
 Console.WriteLine($"Employee with ID 3: {employeesDictionary[3].Name}");
 
-// ══════════════════════════════════════════════════════
+
+
 //  TAREA: REPORTES CON LINQ
-// ══════════════════════════════════════════════════════
+
 
 // 1. Pedidos del último mes agrupados por estado
 Console.WriteLine("\n1. Pedidos del último mes agrupados por estado");
@@ -28,13 +29,13 @@ foreach (var g in pedidosPorEstado)
 // 2. Top 5 libros más vendidos por género
 Console.WriteLine("\n2. Top 5 libros más vendidos por género");
 
-var top5 = books
+var top5masvendidos = books
     .GroupBy(b => b.Genre)
     .Select(g => g.OrderByDescending(b => b.UnitsSold).First())
     .OrderByDescending(b => b.UnitsSold)
     .Take(5);
 
-foreach (var b in top5)
+foreach (var b in top5masvendidos)
     Console.WriteLine($"  [{b.Genre}] {b.Title} - {b.UnitsSold} unidades");
 
 // 3. Búsqueda de libro por nombre parcial
