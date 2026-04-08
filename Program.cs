@@ -9,105 +9,66 @@ List<Employee> employees = SampleData.GetEmployees();
 var employeesDictionary = employees.ToDictionary(e => e.Id);
 Console.WriteLine($"Employee with ID 3: {employeesDictionary[3].Name}");
 
-
-
+// ══════════════════════════════════════════════════════
 //  TAREA: REPORTES CON LINQ
+// ══════════════════════════════════════════════════════
 
-
-
-//  1. Pedidos del último mes agrupados por estado 
-Console.WriteLine("\n 1. Pedidos del último mes agrupados por estado");
-
-DateTime desde = DateTime.Today.AddDays(-30);
+// 1. Pedidos del último mes agrupados por estado
+Console.WriteLine("\n1. Pedidos del último mes agrupados por estado");
 
 var pedidosPorEstado = orders
-    .Where(o => o.Date >= desde)
+    .Where(o => o.Date >= DateTime.Today.AddDays(-30))
     .GroupBy(o => o.Status)
-    .Select(g => new
-    {
-        Estado    = g.Key,
-        Cantidad  = g.Count(),
-        TotalMonto = g.Sum(o => o.Amount)
-    })
+    .Select(g => new { Estado = g.Key, Cantidad = g.Count() })
     .OrderBy(g => g.Estado);
-    
-foreach (var grupo in pedidosPorEstado)
-    Console.WriteLine($"  {grupo.Estado,-12} → {grupo.Cantidad} pedido(s)  |  Total: ${grupo.TotalMonto:N2}");
 
+foreach (var g in pedidosPorEstado)
+    Console.WriteLine($"  {g.Estado}: {g.Cantidad} pedido(s)");
 
+// 2. Top 5 libros más vendidos por género
+Console.WriteLine("\n2. Top 5 libros más vendidos por género");
 
-//  2. Top 5 libros más vendidos por género
-Console.WriteLine("\n 2. Top 5 libros más vendidos por género");
-
-var top5LibrosPorGenero = books
+var top5 = books
     .GroupBy(b => b.Genre)
-    .Select(g => new
-    {
-        Genero   = g.Key,
-        Libro    = g.OrderByDescending(b => b.UnitsSold).First()
-    })
-    .OrderByDescending(x => x.Libro.UnitsSold)
+    .Select(g => g.OrderByDescending(b => b.UnitsSold).First())
+    .OrderByDescending(b => b.UnitsSold)
     .Take(5);
 
-foreach (var item in top5LibrosPorGenero)
-    Console.WriteLine($"  [{item.Genero,-12}]  {item.Libro.Title,-42}  {item.Libro.UnitsSold,4} unidades vendidas");
+foreach (var b in top5)
+    Console.WriteLine($"  [{b.Genre}] {b.Title} - {b.UnitsSold} unidades");
 
+// 3. Búsqueda de libro por nombre parcial
+Console.WriteLine("\n3. Búsqueda de libro por nombre parcial");
 
-
-//  3. Búsqueda de libro por nombre parcial
-Console.WriteLine("\n 3. Búsqueda de libro por nombre parcial");
-
-string terminoBusqueda = "pro"; // cambia este valor para probar otras búsquedas
-var librosencontrados = books
-    .Where(b => b.Title.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase))
+string busqueda = "cle";
+var resultados = books
+    .Where(b => b.Title.ToLower().Contains(busqueda.ToLower()))
     .OrderBy(b => b.Title);
 
-Console.WriteLine($"  Término: \"{terminoBusqueda}\"");
-if (!librosencontrados.Any())
-{
-    Console.WriteLine("  No se encontraron libros.");
-}
-else
-{
-    foreach (var libro in librosencontrados)
-        Console.WriteLine($"  Id {libro.Id,2} | {libro.Title,-42} | {libro.Genre} ({libro.Year})");
-}
+Console.WriteLine($"  Término: \"{busqueda}\"");
+foreach (var b in resultados)
+    Console.WriteLine($"  {b.Title} ({b.Genre})");
 
+// 4. Top 3 clientes que más compraron
+Console.WriteLine("\n4. Top 3 clientes que más compraron");
 
-
-//  4. Top 3 clientes que más compraron
-Console.WriteLine("\n 4. Top 3 clientes que más compraron");
-
-var top3Clientes = orders
+var top3 = orders
     .GroupBy(o => o.CustomerName)
-    .Select(g => new
-    {
-        Cliente       = g.Key,
-        TotalComprado = g.Sum(o => o.Amount),
-        NumeroPedidos = g.Count()
-    })
-    .OrderByDescending(x => x.TotalComprado)
+    .Select(g => new { Cliente = g.Key, Total = g.Sum(o => o.Amount) })
+    .OrderByDescending(x => x.Total)
     .Take(3);
 
-int posicion = 1;
-foreach (var c in top3Clientes)
-    Console.WriteLine($"  #{posicion++}  {c.Cliente,-25}  ${c.TotalComprado:N2}  ({c.NumeroPedidos} pedido(s))");
+foreach (var c in top3)
+    Console.WriteLine($"  {c.Cliente}: ${c.Total:N2}");
 
+// 5. Clientes con ningún pedido completado
+Console.WriteLine("\n5. Clientes sin ningún pedido completado");
 
+var sinCompletado = orders
+    .GroupBy(o => o.CustomerName)
+    .Select(g => new { Cliente = g.Key, Completados = g.Where(o => o.Status == "Completed").Count() })
+    .Where(x => x.Completados == 0)
+    .OrderBy(x => x.Cliente);
 
-//  5. Clientes con ningún pedido completado
-Console.WriteLine("\n 5. Clientes sin ningún pedido completado");
-
-var clientesConPedidoCompletado = orders
-    .Where(o => o.Status == "Completed")
-    .Select(o => o.CustomerName)
-    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-var clientesSinCompletado = orders
-    .Select(o => o.CustomerName)
-    .Distinct()
-    .Where(nombre => !clientesConPedidoCompletado.Contains(nombre))
-    .OrderBy(nombre => nombre);
-
-foreach (var cliente in clientesSinCompletado)
-    Console.WriteLine($"  {cliente}");
+foreach (var c in sinCompletado)
+    Console.WriteLine($"  {c.Cliente}");
